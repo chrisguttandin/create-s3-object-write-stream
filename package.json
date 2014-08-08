@@ -1,0 +1,27 @@
+{
+  "author": "Christoph Guttandin",
+  "description": "Creates a writable stream which uses Amazon's Multipart Upload API under the hood.",
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-mocha-test": "^0.11.0",
+    "lodash": "^2.4.1",
+    "rewire": "^2.1.0",
+    "sinon": "^1.10.3",
+    "sinon-chai": "^2.5.0"
+  },
+  "keywords": [
+    "aws",
+    "S3",
+    "stream"
+  ],
+  "license": "MIT",
+  "main": "src/create-s3-object-write-stream.js",
+  "name": "create-s3-object-write-stream",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "version": "0.0.0"
+}
