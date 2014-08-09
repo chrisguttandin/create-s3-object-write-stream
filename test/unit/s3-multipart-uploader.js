@@ -144,7 +144,7 @@ describe('S3MultipartUploader', function () {
         s3MultipartUploader.on('error', function (err) {
             expect(err.code).to.equal('NoSuchUpload');
 
-            expect(s3Client.uploadPart).to.have.been.calledThrice;
+            expect(s3Client.uploadPart.callCount).to.equal(10);
             expect(s3Client.uploadPart).to.have.been.calledWith(_.merge({
                 Body: buffer,
                 PartNumber: 1,
@@ -167,7 +167,7 @@ describe('S3MultipartUploader', function () {
         s3MultipartUploader.on('error', function (err) {
             expect(err.code).to.equal('NoSuchUpload');
 
-            expect(s3Client.completeMultipartUpload).to.have.been.calledThrice;
+            expect(s3Client.completeMultipartUpload.callCount).to.equal(10);
             expect(s3Client.completeMultipartUpload).to.have.been.calledWith(_.merge({
                 MultipartUpload: {
                     Parts: []
@@ -191,7 +191,7 @@ describe('S3MultipartUploader', function () {
         s3MultipartUploader.on('error', function (err) {
             expect(err.code).to.equal('NoSuchUpload');
 
-            expect(s3Client.abortMultipartUpload).to.have.been.calledThrice;
+            expect(s3Client.abortMultipartUpload.callCount).to.equal(10);
             expect(s3Client.abortMultipartUpload).to.have.been.calledWith(_.merge({
                 UploadId: uploadId
             }, params));

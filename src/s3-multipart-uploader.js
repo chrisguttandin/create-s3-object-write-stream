@@ -2,7 +2,7 @@
 
 var _ = require('lodash'),
     EventEmitter = require('events').EventEmitter,
-    MAX_NUMBER_OF_RETRIES = 3,
+    MAX_NUMBER_OF_RETRIES = 10,
     util = require('util');
 
 function S3MultipartUploader(s3Client, params) {
@@ -34,7 +34,7 @@ S3MultipartUploader.prototype._abort = function (attempt) {
         this._s3Client.abortMultipartUpload(this._params, function (err) {
             if (err !== null) {
                 if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
-                    setTimeout(_abort.bind(null, attempt + 1), attempt * 100);
+                    _abort(attempt + 1);
                 } else {
                     _fail(err);
                 }
@@ -91,7 +91,7 @@ S3MultipartUploader.prototype._complete = function (attempt) {
             if (err === null) {
                 _onComplete();
             } else if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
-                setTimeout(_complete.bind(null, attempt + 1), attempt * 100);
+                _complete(attempt + 1);
             } else {
                 _fail(err);
             }
@@ -156,7 +156,7 @@ S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
             if (err === null) {
                 _onUpload(part, data.ETag);
             } else if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
-                setTimeout(_upload.bind(null, attempt + 1), attempt * 100);
+                _upload(attempt + 1);
             } else {
                 _fail(err);
             }
