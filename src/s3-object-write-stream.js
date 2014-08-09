@@ -21,12 +21,19 @@ S3ObjectWriteStream.prototype.abort = function () {
 
 S3ObjectWriteStream.prototype.emit = function (event) {
     if (event === 'finish') {
-        this._upload();
-        this._s3MultipartUploader.complete(Writable.prototype.emit.bind(this, 'finish'));
+        this._finish(Writable.prototype.emit.bind(this, 'finish'));
         return this.listeners('finish').length > 0;
     } else {
         return Writable.prototype.emit.apply(Writable.prototype, arguments);
     }
+};
+
+S3ObjectWriteStream.prototype._finish = function (callback) {
+    if (this._buffer.length > 0) {
+        this._upload();
+    }
+
+    this._s3MultipartUploader.complete(callback);
 };
 
 S3ObjectWriteStream.prototype._upload = function () {
