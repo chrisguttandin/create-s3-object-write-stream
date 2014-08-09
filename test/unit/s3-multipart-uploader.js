@@ -26,6 +26,7 @@ describe('S3MultipartUploader', function () {
         s3Client.createMultipartUpload.yields(null, {
             UploadId: uploadId
         });
+        s3Client.completeMultipartUpload.yields(null);
         s3Client.uploadPart.yields(null, {
             ETag: eTag
         });
@@ -89,9 +90,7 @@ describe('S3MultipartUploader', function () {
         var buffer = new Buffer(5242880);
 
         s3MultipartUploader.upload(buffer);
-        s3MultipartUploader.complete();
-
-        setTimeout(function () {
+        s3MultipartUploader.complete(function () {
             expect(s3Client.abortMultipartUpload).to.have.not.been.called;
 
             expect(s3Client.createMultipartUpload).to.have.been.calledOnce;
@@ -120,7 +119,7 @@ describe('S3MultipartUploader', function () {
             }, params));
 
             done();
-        }, 100);
+        });
     });
 
     it('should emit an error if multipart upload creation fails', function (done) {
@@ -156,6 +155,30 @@ describe('S3MultipartUploader', function () {
         });
 
         s3MultipartUploader.upload(buffer);
+    });
+
+    it('should try to complete the multipart upload three times if it fails with an "NoSuchUpload" error', function (done) {
+        var buffer = new Buffer(5242880);
+
+        s3Client.completeMultipartUpload.yields({
+            code: 'NoSuchUpload'
+        });
+
+        s3MultipartUploader.on('error', function (err) {
+            expect(err.code).to.equal('NoSuchUpload');
+
+            expect(s3Client.completeMultipartUpload).to.have.been.calledThrice;
+            expect(s3Client.completeMultipartUpload).to.have.been.calledWith(_.merge({
+                MultipartUpload: {
+                    Parts: []
+                },
+                UploadId: uploadId
+            }, params));
+
+            done();
+        });
+
+        s3MultipartUploader.complete(done);
     });
 
 });

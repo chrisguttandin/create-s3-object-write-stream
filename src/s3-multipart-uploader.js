@@ -55,13 +55,14 @@ S3MultipartUploader.prototype._create = function () {
 S3MultipartUploader.prototype.complete = function (callback) {
     this._onCompleteCallback = callback;
 
-    if (this._isWaitingForUploads()) {
-        this._complete();
+    if (!this._isWaitingForUploads()) {
+        this._complete(1);
     }
 };
 
-S3MultipartUploader.prototype._complete = function () {
+S3MultipartUploader.prototype._complete = function (attempt) {
     var _complete = this._complete.bind(this),
+        _fail = this._fail.bind(this),
         _onComplete,
         params;
 
@@ -82,14 +83,14 @@ S3MultipartUploader.prototype._complete = function () {
         this._s3Client.completeMultipartUpload(params, function (err) {
             if (err === null) {
                 _onComplete();
-            } else if (err.code === 'NoSuchUpload') {
-                _complete();
+            } else if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
+                setTimeout(_complete.bind(null, attempt + 1), attempt * 100);
             } else {
-                throw err;
+                _fail(err);
             }
         });
     } else {
-        this._emitter.on('created', _complete);
+        this._emitter.on('created', _complete.bind(null, attempt));
     }
 };
 
@@ -99,7 +100,7 @@ S3MultipartUploader.prototype._fail = function (err) {
 
 S3MultipartUploader.prototype._isWaitingForUploads = function () {
     return this._parts.some(function (part) {
-        return part.eTag !== undefined;
+        return part.eTag === undefined;
     });
 };
 
@@ -115,8 +116,8 @@ S3MultipartUploader.prototype._onCreate = function (uploadId) {
 S3MultipartUploader.prototype._onUpload = function (part, eTag) {
     part.eTag = eTag;
 
-    if (this._onCompleteCallback !== undefined && this._isWaitingForUploads()) {
-        this._complete();
+    if (this._onCompleteCallback !== undefined && !this._isWaitingForUploads()) {
+        this._complete(1);
     }
 };
 
