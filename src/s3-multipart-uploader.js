@@ -134,7 +134,7 @@ S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
     var _fail,
         _onUpload,
         params,
-        _upload = this._upload.bind(this, buffer, part, attempt + 1);
+        _upload = this._upload.bind(this, buffer, part);
 
     if (this._params.UploadId !== undefined) {
         _fail = this._fail.bind(this);
@@ -149,13 +149,13 @@ S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
             if (err === null) {
                 _onUpload(part, data.ETag);
             } else if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
-                setTimeout(_upload, attempt * 100);
+                setTimeout(_upload.bind(null, attempt + 1), attempt * 100);
             } else {
                 _fail(err);
             }
         });
     } else {
-        this._emitter.on('created', _upload);
+        this._emitter.on('created', _upload.bind(null, attempt));
     }
 };
 
