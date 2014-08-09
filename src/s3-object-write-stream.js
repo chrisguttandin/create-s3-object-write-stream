@@ -47,7 +47,7 @@ S3ObjectWriteStream.prototype._finish = function (callback) {
 
 S3ObjectWriteStream.prototype._uploadObject = function (callback) {
     this._s3Client.putObject(_.merge({
-        Body: this.buffer
+        Body: this._buffer
     }, this._params), function(err, data) {
         if (err === null) {
             callback();
