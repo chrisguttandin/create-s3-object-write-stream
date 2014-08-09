@@ -81,7 +81,7 @@ S3MultipartUploader.prototype._complete = function (attempt) {
                 Parts: this._parts.map(function (part) {
                     return {
                         ETag: part.eTag,
-                        PartNumber: part.number.toString()
+                        PartNumber: part.number
                     };
                 })
             }
@@ -149,7 +149,7 @@ S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
 
         params = _.merge({
             Body: buffer,
-            PartNumber: part.number.toString()
+            PartNumber: part.number
         }, this._params);
 
         this._s3Client.uploadPart(params, function (err, data) {
