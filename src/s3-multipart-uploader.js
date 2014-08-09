@@ -20,14 +20,13 @@ function S3MultipartUploader(s3Client, params) {
 util.inherits(S3MultipartUploader, EventEmitter);
 
 S3MultipartUploader.prototype.abort = function () {
+    this._isAborted = true;
     this._abort(1);
 };
 
 S3MultipartUploader.prototype._abort = function (attempt) {
     var _abort = this._abort.bind(this),
         _fail;
-
-    this._isAborted = true;
 
     if (this._params.UploadId !== undefined) {
         _fail = this._fail.bind(this);
