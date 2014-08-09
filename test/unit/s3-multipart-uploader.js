@@ -123,4 +123,27 @@ describe('S3MultipartUploader', function () {
         }, 100);
     });
 
+    it('should try to upload a buffer three times when uploads fail with an "NoSuchUpload" error', function (done) {
+        var buffer = new Buffer(5242880);
+
+        s3Client.uploadPart.yields({
+            code: 'NoSuchUpload'
+        });
+
+        s3MultipartUploader.on('error', function (err) {
+            expect(err.code).to.equal('NoSuchUpload');
+
+            expect(s3Client.uploadPart).to.have.been.calledThrice;
+            expect(s3Client.uploadPart).to.have.been.calledWith(_.merge({
+                Body: buffer,
+                PartNumber: '1',
+                UploadId: uploadId
+            }, params));
+
+            done();
+        });
+
+        s3MultipartUploader.upload(buffer);
+    });
+
 });

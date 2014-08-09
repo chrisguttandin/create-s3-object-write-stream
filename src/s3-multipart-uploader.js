@@ -1,9 +1,13 @@
 'use strict';
 
 var _ = require('lodash'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    MAX_NUMBER_OF_RETRIES = 3,
+    util = require('util');
 
 function S3MultipartUploader(s3Client, params) {
+    EventEmitter.call(this);
+
     this._emitter = new EventEmitter();
     this._isAborted = false;
     this._params = _.clone(params);
@@ -12,6 +16,8 @@ function S3MultipartUploader(s3Client, params) {
 
     this._create();
 }
+
+util.inherits(S3MultipartUploader, EventEmitter);
 
 S3MultipartUploader.prototype.abort = function () {
     var abort = this.abort.bind(this);
@@ -86,6 +92,10 @@ S3MultipartUploader.prototype._complete = function () {
     }
 };
 
+S3MultipartUploader.prototype._fail = function (err) {
+    this.emit('error', err);
+};
+
 S3MultipartUploader.prototype._isWaitingForUploads = function () {
     return this._parts.some(function (part) {
         return part.eTag !== undefined;
@@ -109,20 +119,23 @@ S3MultipartUploader.prototype._onUpload = function (part, eTag) {
     }
 };
 
-S3MultipartUploader.prototype.upload = function (buffer, part) {
-    var _onUpload,
-        params,
-        upload = this.upload.bind(this);
-
-    if (arguments.length === 1) {
-        part = {
+S3MultipartUploader.prototype.upload = function (buffer) {
+    var part = {
             number: this._parts.length + 1
         };
 
-        this._parts.push(part);
-    }
+    this._parts.push(part);
+    this._upload(buffer, part, 1);
+};
+
+S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
+    var _fail,
+        _onUpload,
+        params,
+        _upload = this._upload.bind(this, buffer, part, attempt + 1);
 
     if (this._params.UploadId !== undefined) {
+        _fail = this._fail.bind(this);
         _onUpload = this._onUpload.bind(this);
 
         params = _.merge({
@@ -133,14 +146,14 @@ S3MultipartUploader.prototype.upload = function (buffer, part) {
         this._s3Client.uploadPart(params, function (err, data) {
             if (err === null) {
                 _onUpload(part, data.ETag);
-            } else if (err.code === 'NoSuchUpload') {
-                upload(buffer, part);
+            } else if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
+                setTimeout(_upload, attempt * 100);
             } else {
-                throw err;
+                _fail(err);
             }
         });
     } else {
-        this._emitter.on('created', this.upload.bind(this, buffer, part));
+        this._emitter.on('created', _upload);
     }
 };
 
