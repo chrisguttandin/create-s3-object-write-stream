@@ -22,8 +22,7 @@ describe('S3ObjectWriteStream', function () {
         s3ObjectWriteStream.write(buffer);
         s3ObjectWriteStream.write(buffer);
 
-        expect(s3ObjectWriteStream._s3MultipartUploader.complete).to.have.not.been.called;
-        expect(s3ObjectWriteStream._s3MultipartUploader.upload).to.have.not.been.called;
+        expect(s3ObjectWriteStream._s3MultipartUploader).to.be.null;
 
         s3ObjectWriteStream.write(buffer);
 
