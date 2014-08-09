@@ -62,11 +62,12 @@ S3MultipartUploader.prototype.complete = function (callback) {
 
 S3MultipartUploader.prototype._complete = function (attempt) {
     var _complete = this._complete.bind(this),
-        _fail = this._fail.bind(this),
+        _fail,
         _onComplete,
         params;
 
     if (this._params.UploadId !== undefined) {
+        _fail = this._fail.bind(this);
         _onComplete = this._onComplete.bind(this);
 
         params = _.merge({
