@@ -1,6 +1,7 @@
 'use strict';
 
-var Buffer = require('buffer').Buffer,
+var _ = require('lodash'),
+    Buffer = require('buffer').Buffer,
     MIN_PART_SIZE = 5242880, // 5 MB
     S3MultipartUploader = require('./s3-multipart-uploader.js').S3MultipartUploader,
     util = require('util'),
