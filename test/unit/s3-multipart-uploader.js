@@ -78,7 +78,7 @@ describe('S3MultipartUploader', function () {
             expect(s3Client.uploadPart).to.have.been.calledOnce;
             expect(s3Client.uploadPart).to.have.been.calledWith(_.merge({
                 Body: buffer,
-                PartNumber: '1',
+                PartNumber: 1,
                 UploadId: uploadId
             }, params));
 
@@ -104,7 +104,7 @@ describe('S3MultipartUploader', function () {
                     Parts: [
                         {
                             ETag: eTag,
-                            PartNumber: '1'
+                            PartNumber: 1
                         }
                     ]
                 },
@@ -114,7 +114,7 @@ describe('S3MultipartUploader', function () {
             expect(s3Client.uploadPart).to.have.been.calledOnce;
             expect(s3Client.uploadPart).to.have.been.calledWith(_.merge({
                 Body: buffer,
-                PartNumber: '1',
+                PartNumber: 1,
                 UploadId: uploadId
             }, params));
 
@@ -147,7 +147,7 @@ describe('S3MultipartUploader', function () {
             expect(s3Client.uploadPart).to.have.been.calledThrice;
             expect(s3Client.uploadPart).to.have.been.calledWith(_.merge({
                 Body: buffer,
-                PartNumber: '1',
+                PartNumber: 1,
                 UploadId: uploadId
             }, params));
 
