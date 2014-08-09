@@ -46,11 +46,15 @@ S3ObjectWriteStream.prototype._finish = function (callback) {
 };
 
 S3ObjectWriteStream.prototype._uploadObject = function (callback) {
+    var emit = this.emit.bind(this);
+
     this._s3Client.putObject(_.merge({
         Body: this._buffer
     }, this._params), function(err, data) {
         if (err === null) {
             callback();
+        } else {
+            emit(err);
         }
     });
 };
@@ -71,6 +75,7 @@ S3ObjectWriteStream.prototype._write = function (chunk, encoding, callback) {
     if (totalLength >= MIN_PART_SIZE) {
         if (this._s3MultipartUploader === null) {
             this._s3MultipartUploader = new S3MultipartUploader(this._s3Client, this._params);
+            this._s3MultipartUploader.on('error', this.emit.bind(this));
         }
 
         this._uploadPart();
