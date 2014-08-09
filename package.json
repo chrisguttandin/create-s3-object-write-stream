@@ -1,5 +1,8 @@
 {
   "author": "Christoph Guttandin",
+  "bugs": {
+    "url": "https://github.com/chrisguttandin/create-s3-object-write-stream/issues"
+  },
   "description": "Creates a writable stream which uses Amazon's Multipart Upload API under the hood.",
   "devDependencies": {
     "chai": "^1.9.1",
@@ -17,9 +20,14 @@
     "S3",
     "stream"
   ],
+  "homepage": "https://github.com/chrisguttandin/create-s3-object-write-stream",
   "license": "MIT",
   "main": "src/create-s3-object-write-stream.js",
   "name": "create-s3-object-write-stream",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chrisguttandin/create-s3-object-write-stream.git"
+  },
   "scripts": {
     "test": "grunt test"
   },
