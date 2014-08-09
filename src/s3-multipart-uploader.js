@@ -20,22 +20,29 @@ function S3MultipartUploader(s3Client, params) {
 util.inherits(S3MultipartUploader, EventEmitter);
 
 S3MultipartUploader.prototype.abort = function () {
-    var abort = this.abort.bind(this);
+    this._abort(1);
+};
+
+S3MultipartUploader.prototype._abort = function (attempt) {
+    var _abort = this._abort.bind(this),
+        _fail;
 
     this._isAborted = true;
 
     if (this._params.UploadId !== undefined) {
+        _fail = this._fail.bind(this);
+
         this._s3Client.abortMultipartUpload(this._params, function (err) {
             if (err !== null) {
-                if (err.code === 'NoSuchUpload') {
-                    abort();
+                if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
+                    setTimeout(_abort.bind(null, attempt + 1), attempt * 100);
                 } else {
-                    throw err;
+                    _fail(err);
                 }
             }
         });
     } else {
-        this._emitter.on('created', abort);
+        this._emitter.on('created', _abort.bind(null, attempt));
     }
 };
 
