@@ -40,13 +40,14 @@ S3MultipartUploader.prototype.abort = function () {
 };
 
 S3MultipartUploader.prototype._create = function () {
-    var _onCreate = this._onCreate.bind(this);
+    var _fail = this._fail.bind(this),
+        _onCreate = this._onCreate.bind(this);
 
     this._s3Client.createMultipartUpload(this._params, function (err, data) {
         if (err === null) {
             _onCreate(data.UploadId);
         } else {
-            throw err;
+            _fail(err);
         }
     });
 };

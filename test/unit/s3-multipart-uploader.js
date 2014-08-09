@@ -123,6 +123,18 @@ describe('S3MultipartUploader', function () {
         }, 100);
     });
 
+    it('should emit an error if multipart upload creation fails', function (done) {
+        s3Client.createMultipartUpload.yieldsAsync('a fake error');
+
+        s3MultipartUploader = new S3MultipartUploader(s3Client, params);
+
+        s3MultipartUploader.on('error', function (err) {
+            expect(err).to.equal('a fake error');
+
+            done();
+        });
+    });
+
     it('should try to upload a buffer three times when uploads fail with an "NoSuchUpload" error', function (done) {
         var buffer = new Buffer(5242880);
 
