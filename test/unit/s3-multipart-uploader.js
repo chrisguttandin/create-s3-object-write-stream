@@ -27,6 +27,7 @@ describe('S3MultipartUploader', function () {
             UploadId: uploadId
         });
         s3Client.completeMultipartUpload.yields(null);
+        s3Client.listParts.yields(null);
         s3Client.uploadPart.yields(null, {
             ETag: eTag
         });
@@ -49,6 +50,11 @@ describe('S3MultipartUploader', function () {
             }, params));
 
             expect(s3Client.completeMultipartUpload).to.have.not.been.called;
+
+            expect(s3Client.listParts).to.have.been.calledOnce;
+            expect(s3Client.listParts).to.have.been.calledWith(_.merge({
+                UploadId: uploadId
+            }, params));
 
             expect(s3Client.uploadPart).to.have.not.been.called;
 
@@ -74,6 +80,11 @@ describe('S3MultipartUploader', function () {
             }, params));
 
             expect(s3Client.completeMultipartUpload).to.have.not.been.called;
+
+            expect(s3Client.listParts).to.have.been.calledOnce;
+            expect(s3Client.listParts).to.have.been.calledWith(_.merge({
+                UploadId: uploadId
+            }, params));
 
             expect(s3Client.uploadPart).to.have.been.calledOnce;
             expect(s3Client.uploadPart).to.have.been.calledWith(_.merge({
@@ -108,6 +119,11 @@ describe('S3MultipartUploader', function () {
                         }
                     ]
                 },
+                UploadId: uploadId
+            }, params));
+
+            expect(s3Client.listParts).to.have.been.calledOnce;
+            expect(s3Client.listParts).to.have.been.calledWith(_.merge({
                 UploadId: uploadId
             }, params));
 

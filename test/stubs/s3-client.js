@@ -4,6 +4,7 @@ function S3ClientStub() {
     this.abortMultipartUpload = sinon.stub();
     this.createMultipartUpload = sinon.stub();
     this.completeMultipartUpload = sinon.stub();
+    this.listParts = sinon.stub();
     this.uploadPart = sinon.stub();
 }
 
