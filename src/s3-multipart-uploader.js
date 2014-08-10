@@ -26,18 +26,19 @@ S3MultipartUploader.prototype.abort = function () {
 
 S3MultipartUploader.prototype._abort = function (attempt) {
     var _abort = this._abort.bind(this),
-        _fail;
+        _fail,
+        _onAbort = this._onAbort.bind(this);
 
     if (this._params.UploadId !== undefined) {
         _fail = this._fail.bind(this);
 
         this._s3Client.abortMultipartUpload(this._params, function (err) {
-            if (err !== null) {
-                if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
-                    _abort(attempt + 1);
-                } else {
-                    _fail(err);
-                }
+            if (err === null) {
+                _onAbort();
+            } else if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
+                _abort(attempt + 1);
+            } else {
+                _fail(err);
             }
         });
     } else {
@@ -46,8 +47,15 @@ S3MultipartUploader.prototype._abort = function (attempt) {
 };
 
 S3MultipartUploader.prototype._create = function () {
-    var _fail = this._fail.bind(this),
-        _onCreate = this._onCreate.bind(this);
+    var _fail,
+        _onCreate;
+
+    if (this._isAborted) {
+        return;
+    }
+
+    _fail = this._fail.bind(this);
+    _onCreate = this._onCreate.bind(this);
 
     this._s3Client.createMultipartUpload(this._params, function (err, data) {
         if (err === null) {
@@ -67,10 +75,16 @@ S3MultipartUploader.prototype.complete = function (callback) {
 };
 
 S3MultipartUploader.prototype._complete = function (attempt) {
-    var _complete = this._complete.bind(this),
+    var _complete,
         _fail,
         _onComplete,
         params;
+
+    if (this._isAborted) {
+        return;
+    }
+
+    _complete = this._complete.bind(this);
 
     if (this._params.UploadId !== undefined) {
         _fail = this._fail.bind(this);
@@ -111,6 +125,10 @@ S3MultipartUploader.prototype._isWaitingForUploads = function () {
     });
 };
 
+S3MultipartUploader.prototype._onAbort = function () {
+    this.emit('aborted');
+};
+
 S3MultipartUploader.prototype._onComplete = function () {
     this._onCompleteCallback.call(null);
 };
@@ -145,7 +163,13 @@ S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
     var _fail,
         _onUpload,
         params,
-        _upload = this._upload.bind(this, buffer, part);
+        _upload;
+
+    if (this._isAborted) {
+        return;
+    }
+
+    _upload = this._upload.bind(this, buffer, part);
 
     if (this._params.UploadId !== undefined) {
         _fail = this._fail.bind(this);
