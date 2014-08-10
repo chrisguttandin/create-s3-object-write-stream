@@ -10,6 +10,18 @@ describe('createS3ObjectWriteStream()', function () {
         s3Client;
 
     afterEach(function (done) {
+        s3Client.listMultipartUploads({
+            Bucket: BUCKET
+        }, function (err, data) {
+            expect(err).to.be.null;
+
+            expect(data.Uploads).to.deep.equal([], 'Expected the array of in-progress multipart uploads to be empty.');
+
+            done();
+        })
+    });
+
+    afterEach(function (done) {
         s3Client.deleteBucket({
             Bucket: BUCKET
         }, done);
