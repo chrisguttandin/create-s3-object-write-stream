@@ -14,7 +14,7 @@ describe('S3ObjectWriteStream', function () {
         s3ObjectWriteStream = new s3ObjectWriteStreamModule.S3ObjectWriteStream();
     });
 
-    it('should upload chunks of a least 5 mega bytes', function () {
+    it('should upload chunks of a least 5 megabytes', function () {
         var buffer = new Buffer(1048576); // 1 MB
 
         s3ObjectWriteStream.write(buffer);
