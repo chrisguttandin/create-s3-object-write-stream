@@ -19,7 +19,10 @@ function S3ObjectWriteStream(s3Client, params) {
 util.inherits(S3ObjectWriteStream, Writable);
 
 S3ObjectWriteStream.prototype.abort = function () {
-    if (this._s3MultipartUploader !== null) {
+    if (this._s3MultipartUploader === null) {
+        this.emit('aborted');
+    } else {
+        this._s3MultipartUploader.on('aborted', this.emit.bind(this, 'aborted'));
         this._s3MultipartUploader.abort();
     }
 };
@@ -29,7 +32,7 @@ S3ObjectWriteStream.prototype.emit = function (event) {
         this._finish(Writable.prototype.emit.bind(this, 'finish'));
         return this.listeners('finish').length > 0;
     } else {
-        return Writable.prototype.emit.apply(Writable.prototype, arguments);
+        return Writable.prototype.emit.apply(this, arguments);
     }
 };
 

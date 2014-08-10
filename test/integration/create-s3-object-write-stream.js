@@ -57,7 +57,7 @@ describe('createS3ObjectWriteStream()', function () {
                 }, function (err, data) {
                     expect(err).to.be.null;
 
-                    expect(data.Body.toString()).to.equal('a small text');
+                    expect(data.Body.toString()).to.equal('a short text');
 
                     s3Client.deleteObject({
                         Bucket: BUCKET,
@@ -65,7 +65,7 @@ describe('createS3ObjectWriteStream()', function () {
                     }, done);
                 });
             })
-            .end('a small text');
+            .end('a short text');
     });
 
     it('should upload a file larger than five megabytes', function (done) {
@@ -98,6 +98,56 @@ describe('createS3ObjectWriteStream()', function () {
         writeStream.write(buffer.slice(3145728, 4194304));
         writeStream.write(buffer.slice(4194304, 5242880));
         writeStream.end(buffer.slice(5242880));
+    });
+
+    it('should abort the writable stream after writing a few bytes', function (done) {
+        var writeStream = createS3ObjectWriteStream(s3Client, {
+                Bucket: BUCKET,
+                Key: 'a-small-text-file.txt'
+            });
+
+        writeStream.write('a short text');
+
+        writeStream
+            .on('aborted', function () {
+                s3Client.headObject({
+                    Bucket: BUCKET,
+                    Key: 'a-small-text-file.txt'
+                }, function (err, data) {
+                    expect(err.code).to.equal('NotFound');
+
+                    done();
+                });
+            })
+            .abort();
+    });
+
+    it('should abort the writable stream after writing more than five megabytes', function (done) {
+        var buffer = new Buffer(6291456), // 6 MB
+            writeStream = createS3ObjectWriteStream(s3Client, {
+                Bucket: BUCKET,
+                Key: 'a-large-binary-file'
+            });
+
+        writeStream.write(buffer.slice(0, 1048576));
+        writeStream.write(buffer.slice(1048576, 2097152));
+        writeStream.write(buffer.slice(2097152, 3145728));
+        writeStream.write(buffer.slice(3145728, 4194304));
+        writeStream.write(buffer.slice(4194304, 5242880));
+        writeStream.write(buffer.slice(5242880));
+
+        writeStream
+            .on('aborted', function () {
+                s3Client.headObject({
+                    Bucket: BUCKET,
+                    Key: 'a-large-binary-file'
+                }, function (err, data) {
+                    expect(err.code).to.equal('NotFound');
+
+                    done();
+                });
+            })
+            .abort();
     });
 
 });
