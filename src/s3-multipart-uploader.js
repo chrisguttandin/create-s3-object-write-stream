@@ -1,7 +1,6 @@
 'use strict';
 
-var _ = require('lodash'),
-    EventEmitter = require('events').EventEmitter,
+var EventEmitter = require('events').EventEmitter,
     MAX_NUMBER_OF_RETRIES = 10,
     util = require('util');
 
@@ -10,7 +9,7 @@ function S3MultipartUploader(s3Client, params) {
 
     this._emitter = new EventEmitter();
     this._isAborted = false;
-    this._params = _.clone(params);
+    this._params = params;
     this._parts = [];
     this._s3Client = s3Client;
 
@@ -27,12 +26,25 @@ S3MultipartUploader.prototype.abort = function () {
 S3MultipartUploader.prototype._abort = function (attempt) {
     var _abort = this._abort.bind(this),
         _fail,
-        _onAbort = this._onAbort.bind(this);
+        _onAbort = this._onAbort.bind(this),
+        params;
 
     if (this._params.UploadId !== undefined) {
         _fail = this._fail.bind(this);
 
-        this._s3Client.abortMultipartUpload(this._params, function (err) {
+        params = {
+            UploadId: this._params.UploadId
+        };
+
+        if (this._params.Bucket !== undefined) {
+            params.Bucket = this._params.Bucket;
+        }
+
+        if (this._params.Key !== undefined) {
+            params.Key = this._params.Key;
+        }
+
+        this._s3Client.abortMultipartUpload(params, function (err) {
             if (err === null) {
                 _onAbort();
             } else if (attempt < MAX_NUMBER_OF_RETRIES && err.code === 'NoSuchUpload') {
@@ -90,7 +102,7 @@ S3MultipartUploader.prototype._complete = function (attempt) {
         _fail = this._fail.bind(this);
         _onComplete = this._onComplete.bind(this);
 
-        params = _.merge({
+        params = {
             MultipartUpload: {
                 Parts: this._parts.map(function (part) {
                     return {
@@ -98,8 +110,17 @@ S3MultipartUploader.prototype._complete = function (attempt) {
                         PartNumber: part.number
                     };
                 })
-            }
-        }, this._params);
+            },
+            UploadId: this._params.UploadId
+        };
+
+        if (this._params.Bucket !== undefined) {
+            params.Bucket = this._params.Bucket;
+        }
+
+        if (this._params.Key !== undefined) {
+            params.Key = this._params.Key;
+        }
 
         this._s3Client.completeMultipartUpload(params, function (err) {
             if (err === null) {
@@ -175,10 +196,19 @@ S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
         _fail = this._fail.bind(this);
         _onUpload = this._onUpload.bind(this);
 
-        params = _.merge({
+        params = {
             Body: buffer,
-            PartNumber: part.number
-        }, this._params);
+            PartNumber: part.number,
+            UploadId: this._params.UploadId
+        };
+
+        if (this._params.Bucket !== undefined) {
+            params.Bucket = this._params.Bucket;
+        }
+
+        if (this._params.Key !== undefined) {
+            params.Key = this._params.Key;
+        }
 
         this._s3Client.uploadPart(params, function (err, data) {
             if (err === null) {
@@ -198,10 +228,18 @@ S3MultipartUploader.prototype._verify = function (uploadId, attempt) {
     var _create = this._create.bind(this),
         _fail = this._fail.bind(this),
         _onVerify = this._onVerify.bind(this, uploadId),
-        params = _.merge({
+        params = {
             UploadId: uploadId
-        }, this._params),
+        },
         _verify = this._verify.bind(this, uploadId, attempt + 1);
+
+    if (this._params.Bucket !== undefined) {
+        params.Bucket = this._params.Bucket;
+    }
+
+    if (this._params.Key !== undefined) {
+        params.Key = this._params.Key;
+    }
 
     this._s3Client.listParts(params, function (err, data) {
         if (err === null) {
