@@ -1,2 +1,3 @@
 *.DS_Store
+config/credentials/aws.json
 node_modules

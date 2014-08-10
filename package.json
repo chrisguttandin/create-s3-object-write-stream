@@ -5,6 +5,7 @@
   },
   "description": "Creates a writable stream which uses Amazon's Multipart Upload API under the hood.",
   "devDependencies": {
+    "aws-sdk": "^2.0.11",
     "chai": "^1.9.1",
     "grunt": "^0.4.5",
     "grunt-cli": "^0.1.13",

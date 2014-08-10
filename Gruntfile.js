@@ -23,7 +23,17 @@ module.exports = function (grunt) {
             }
         },
         mochaTest: {
-            all: {
+            integration: {
+                options: {
+                    reporter: 'spec',
+                    require: 'test/globals.js',
+                    timeout: 0
+                },
+                src: [
+                    'test/integration/**/*.js'
+                ]
+            },
+            unit: {
                 options: {
                     reporter: 'spec',
                     require: 'test/globals.js',
