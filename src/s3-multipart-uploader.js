@@ -196,6 +196,7 @@ S3MultipartUploader.prototype._upload = function (buffer, part, attempt) {
 
 S3MultipartUploader.prototype._verify = function (uploadId, attempt) {
     var _create = this._create.bind(this),
+        _fail = this._fail.bind(this),
         _onVerify = this._onVerify.bind(this, uploadId),
         params = _.merge({
             UploadId: uploadId
